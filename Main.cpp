@@ -1,7 +1,6 @@
 #include <iostream>
 #include<glad/glad.h>
 #include<GLFW/glfw3.h>
-#define STB_IMAGE_IMPLEMENTATION
 #include<stb/stb_image.h>
 //#include<FreeImage/FreeImagePlus.h>
 
@@ -9,6 +8,7 @@
 #include"VAO.h"
 #include"VBO.h"
 #include"EBO.h"
+#include"Texture.h"
 
 // Create points to draw triangle.
 /*GLfloat vertices[] =
@@ -31,10 +31,10 @@ GLuint indices[] =
 // Vertices coordinates
 GLfloat vertices[] =
 { //     COORDINATES     /        COLORS      /   TexCoord  //
-	-0.5f, -0.5f, 0.0f,     1.0f, 0.0f, 0.0f,	 // Lower left corner
-	-0.5f,  0.5f, 0.0f,     0.0f, 1.0f, 0.0f,	 // Upper left corner
-	 0.5f,  0.5f, 0.0f,     0.0f, 0.0f, 1.0f,	 // Upper right corner
-	 0.5f, -0.5f, 0.0f,     1.0f, 1.0f, 1.0f,	 // Lower right corner
+	-0.5f, -0.5f, 0.0f,     1.0f, 0.0f, 0.0f,	0.0f, 0.0f, // Lower left corner
+	-0.5f,  0.5f, 0.0f,     0.0f, 1.0f, 0.0f,	0.0f, 1.0f, // Upper left corner
+	 0.5f,  0.5f, 0.0f,     0.0f, 0.0f, 1.0f,	1.0f, 1.0f, // Upper right corner
+	 0.5f, -0.5f, 0.0f,     1.0f, 1.0f, 1.0f,	1.0f, 0.0f  // Lower right corner
 };
 
 // Indices for vertices order
@@ -95,13 +95,18 @@ int main()
 	EBO EBO1(indices, sizeof(indices));
 
 	// Links VBO attributes such as coordinates and colors to VAO
-	VAO1.LinkAttrib(VBO1, 0, 3, GL_FLOAT, 6 * sizeof(float), (void*)0);
-	VAO1.LinkAttrib(VBO1, 1, 3, GL_FLOAT, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+	VAO1.LinkAttrib(VBO1, 0, 3, GL_FLOAT, 8 * sizeof(float), (void*)0);
+	VAO1.LinkAttrib(VBO1, 1, 3, GL_FLOAT, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+	VAO1.LinkAttrib(VBO1, 2, 2, GL_FLOAT, 8 * sizeof(float), (void*)(6 * sizeof(float)));
 	VAO1.Unbind();
 	VBO1.Unbind();
 	EBO1.Unbind();
 
 	GLuint uniID = glGetUniformLocation(shaderProgram.ID, "scale");
+
+	// Texture
+	Texture pineapple("pineapple.png", GL_TEXTURE_2D, GL_TEXTURE0, GL_RGBA, GL_UNSIGNED_BYTE);
+	pineapple.texUnit(shaderProgram, "tex0", 0);
 
 	// Main while loop.
 	// This is probably where we will also run update, physics, ect.
@@ -114,7 +119,8 @@ int main()
 
 		// Tell OpenGL which Shader Program to use.
 		shaderProgram.Activate();
-		glUniform1f(uniID, .5f);
+		glUniform1f(uniID, 0.5f);
+		pineapple.Bind();
 		// Bind the VAO so OpenGL knows how to use it.
 		VAO1.Bind();
 		// Draw triangle using the GL_TRIANGLES primative.
@@ -137,6 +143,7 @@ int main()
 	VAO1.Delete();
 	VBO1.Delete();
 	EBO1.Delete();
+	pineapple.Delete();
 	shaderProgram.Delete();
 
 	// when the program escapes the while loop, destroy the window and terminate GLFW to avoid memory leaks.

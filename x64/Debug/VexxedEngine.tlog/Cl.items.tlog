@@ -3,6 +3,9 @@ C:\Users\Alex\Documents\GitHub\VexxedEngine\glad.c;C:\Users\Alex\Documents\GitHu
 C:\Users\Alex\Documents\GitHub\VexxedEngine\Main.cpp;C:\Users\Alex\Documents\GitHub\VexxedEngine\x64\Debug\Main.obj
 C:\Users\Alex\Documents\GitHub\VexxedEngine\Perlin.cpp;C:\Users\Alex\Documents\GitHub\VexxedEngine\x64\Debug\Perlin.obj
 C:\Users\Alex\Documents\GitHub\VexxedEngine\ShaderClass.cpp;C:\Users\Alex\Documents\GitHub\VexxedEngine\x64\Debug\ShaderClass.obj
+C:\Users\Alex\Documents\GitHub\VexxedEngine\stb.cpp;C:\Users\Alex\Documents\GitHub\VexxedEngine\x64\Debug\stb.obj
+C:\Users\Alex\Documents\GitHub\VexxedEngine\Texture.cpp;C:\Users\Alex\Documents\GitHub\VexxedEngine\x64\Debug\Texture.obj
 C:\Users\Alex\Documents\GitHub\VexxedEngine\VAO.cpp;C:\Users\Alex\Documents\GitHub\VexxedEngine\x64\Debug\VAO.obj
 C:\Users\Alex\Documents\GitHub\VexxedEngine\VBO.cpp;C:\Users\Alex\Documents\GitHub\VexxedEngine\x64\Debug\VBO.obj
 C:\Users\Alex\Documents\GitHub\VexxedEngine\Vec2.cpp;C:\Users\Alex\Documents\GitHub\VexxedEngine\x64\Debug\Vec2.obj
+C:\Users\Alex\Documents\GitHub\VexxedEngine\Vec3.cpp;C:\Users\Alex\Documents\GitHub\VexxedEngine\x64\Debug\Vec3.obj
