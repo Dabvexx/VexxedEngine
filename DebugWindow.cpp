@@ -1,1 +1,0 @@
-// Draws a second window to act as a debug console.
