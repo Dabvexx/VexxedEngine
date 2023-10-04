@@ -59,8 +59,8 @@ void Camera::Inputs(GLFWwindow* window)
 		speed = 0.1f;
 	}
 
-	//if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
-	//{
+	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
+	{
 		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
 
 		if (firstClick)
@@ -87,10 +87,10 @@ void Camera::Inputs(GLFWwindow* window)
 		orientation = glm::rotate(orientation, glm::radians(-rotY), up);
 
 		glfwSetCursorPos(window, (width / 2), (height / 2));
-	//}
-	//else if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_RELEASE)
-	//{
-	//	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-	//	firstClick = true;
-	//}
+	}
+	else if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_RELEASE)
+	{
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+		firstClick = true;
+	}
 }

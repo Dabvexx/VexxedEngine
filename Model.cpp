@@ -8,7 +8,34 @@ Model::Model(const char* file)
 	Model::file = file;
 	data = GetData();
 
-	TraverseNode(0);
+	// This simply has to traverse every single node in the meshes section in order to multiload.
+	// i do need to figure out how to place it in the correct places.
+	// They are placed correctly just not rotated correctly
+	
+	json nodes = JSON["scenes"][0]["nodes"];
+
+	std::vector <unsigned int> nodesToProcess(nodes.size());
+
+	for (unsigned int i = 0; i < nodes.size(); i++)
+	{
+		nodesToProcess[i] = JSON["scenes"][0]["nodes"][i];
+	}
+
+	std::cout << "Root Nodes to traverse: ";
+
+	for (unsigned int i = 0; i < nodesToProcess.size(); i++)
+	{
+		std::cout << nodesToProcess[i] << " ";
+	}
+
+	std::cout << std::endl;
+
+	for (unsigned int i = 0; i < nodesToProcess.size(); i++)
+	{
+		std::cout << "Root node to be traversed: " << nodesToProcess[i]  << std::endl;
+		TraverseNode(nodesToProcess[i]);
+	}
+	//TraverseNode(0);
 }
 
 void Model::Draw(Shader& shader, Camera& camera)
@@ -26,6 +53,7 @@ void Model::LoadMesh(unsigned int indMesh)
 	unsigned int normalAccInd = JSON["meshes"][indMesh]["primitives"][0]["attributes"]["NORMAL"];
 	unsigned int texAccInd = JSON["meshes"][indMesh]["primitives"][0]["attributes"]["TEXCOORD_0"];
 	unsigned int indAccInd = JSON["meshes"][indMesh]["primitives"][0]["indices"];
+	unsigned int matAccInd = JSON["meshes"][indMesh]["primitives"][0]["material"];
 
 	std::vector <float> posVec = GetFloats(JSON["accessors"][posAccInd]);
 	std::vector <glm::vec3> positions = GroupFloatsVec3(posVec);
@@ -33,6 +61,7 @@ void Model::LoadMesh(unsigned int indMesh)
 	std::vector <glm::vec3> normals = GroupFloatsVec3(normalVec);
 	std::vector <float> texVec = GetFloats(JSON["accessors"][texAccInd]);
 	std::vector <glm::vec2> texUVs = GroupFloatsVec2(texVec);
+	// material = JSON["materials"][matAccInd];
 
 	std::vector<Vertex> vertices = AssembleVertices(positions, normals, texUVs);
 	std::vector<GLuint> indices = GetIndices(JSON["accessors"][indAccInd]);
@@ -43,11 +72,16 @@ void Model::LoadMesh(unsigned int indMesh)
 
 void Model::TraverseNode(unsigned int nextNode, glm::mat4 matrix)
 {
+	// Current node.
 	json node = JSON["nodes"][nextNode];
 
+	std::cout << "Traversing node: " << nextNode << std::endl;
+
+	// Get translation if exists.
 	glm::vec3 translation = glm::vec3(0.0f, 0.0f, 0.0f);
 	if (node.find("translation") != node.end())
 	{
+		std::cout << "Found translation" << std::endl;
 		float transValues[3];
 		for (unsigned int i = 0; i < node["translation"].size(); i++)
 		{
@@ -56,9 +90,12 @@ void Model::TraverseNode(unsigned int nextNode, glm::mat4 matrix)
 		translation = glm::make_vec3(transValues);
 	}
 
+	// Get rotation if exists.
 	glm::quat rotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
 	if (node.find("rotation") != node.end())
 	{
+		std::cout << "Found rotation" << std::endl;
+
 		float rotValues[4] =
 		{
 			node["rotation"][3],
@@ -69,9 +106,11 @@ void Model::TraverseNode(unsigned int nextNode, glm::mat4 matrix)
 		rotation = glm::make_quat(rotValues);
 	}
 
+	// Get scale if exists.
 	glm::vec3 scale = glm::vec3(1.0f, 1.0f, 1.0f);
 	if (node.find("scale") != node.end())
 	{
+		std::cout << "Found scale" << std::endl;
 		float scaleValues[3];
 		for (unsigned int i = 0; i < node["scale"].size(); i++)
 		{
@@ -83,6 +122,8 @@ void Model::TraverseNode(unsigned int nextNode, glm::mat4 matrix)
 	glm::mat4 matNode = glm::mat4(1.0f);
 	if (node.find("matrix") != node.end())
 	{
+		std::cout << "Found Matrix" << std::endl;
+
 		float matValues[16];
 		for (unsigned int i = 0; i < node["matrix"].size(); i++)
 		{
@@ -99,10 +140,13 @@ void Model::TraverseNode(unsigned int nextNode, glm::mat4 matrix)
 	rot = glm::mat4_cast(rotation);
 	sca = glm::scale(sca, scale);
 
+	// Multiply all matrices together
 	glm::mat4 matNextNode = matrix * matNode * trans * rot * sca;
 
 	if (node.find("mesh") != node.end())
 	{
+		std::cout << "Found mesh" << std::endl;
+
 		translationsMeshes.push_back(translation);
 		rotationsMeshes.push_back(rotation);
 		scalesMeshes.push_back(scale);
@@ -111,13 +155,17 @@ void Model::TraverseNode(unsigned int nextNode, glm::mat4 matrix)
 		LoadMesh(node["mesh"]);
 	}
 
+	// Check if node has children and apply function to them with matNextNode
 	if (node.find("children") != node.end())
 	{
+		std::cout << "Mesh has child" << std::endl;
 		for (unsigned int i = 0; i < node["children"].size(); i++)
 		{
 			TraverseNode(node["children"][i], matNextNode);
 		}
 	}
+
+	std::cout << "Finished traversing node: " << nextNode << std::endl;
 }
 
 std::vector <unsigned char> Model::GetData()
@@ -153,7 +201,7 @@ std::vector<float> Model::GetFloats(json accessor)
 	else if (type == "VEC2") numPerVert = 2;
 	else if (type == "VEC3") numPerVert = 3;
 	else if (type == "VEC4") numPerVert = 4;
-	else throw std::invalid_argument("Type is invalid (not SCALAR, VEC2, VEC3, or VEC4");
+	else throw std::invalid_argument("Type is invalid (not SCALAR, VEC2, VEC3, or VEC4)");
 
 	unsigned int beginningOfData = byteOffset + accByteOffset;
 	unsigned int lengthOfData = count * 4 * numPerVert;
@@ -172,6 +220,7 @@ std::vector<GLuint> Model::GetIndices(json accessor)
 {
 	std::vector<GLuint> indices;
 
+	// Get properties from the accessor
 	unsigned int buffViewInd = accessor.value("bufferView", 0);
 	unsigned int count = accessor["count"];
 	unsigned int accByteOffset = accessor.value("byteOffset", 0);
@@ -195,8 +244,8 @@ std::vector<GLuint> Model::GetIndices(json accessor)
 	{
 		for (unsigned int i = beginningOfData; i < byteOffset + accByteOffset + count * 2; i)
 		{
-			unsigned char bytes[] = { data[i++], data[i++], data[i++], data[i++] };
-			unsigned int value;
+			unsigned char bytes[] = { data[i++], data[i++] };
+			unsigned short value;
 			std::memcpy(&value, bytes, sizeof(unsigned short));
 			indices.push_back((GLuint)value);
 		}
@@ -205,22 +254,22 @@ std::vector<GLuint> Model::GetIndices(json accessor)
 	{
 		for (unsigned int i = beginningOfData; i < byteOffset + accByteOffset + count * 2; i)
 		{
-			unsigned char bytes[] = { data[i++], data[i++], data[i++], data[i++] };
-			unsigned int value;
+			unsigned char bytes[] = { data[i++], data[i++] };
+			short value;
 			std::memcpy(&value, bytes, sizeof(short));
 			indices.push_back((GLuint)value);
 		}
 	}
-	else if (componentType == 5126)
+	/*else if (componentType == 5126)
 	{
 		for (unsigned int i = beginningOfData; i < byteOffset + accByteOffset + count * 4; i)
 		{
 			unsigned char bytes[] = { data[i++], data[i++], data[i++], data[i++] };
-			unsigned int value;
+			float value;
 			std::memcpy(&value, bytes, sizeof(float));
 			indices.push_back((GLuint)value);
 		}
-	}
+	}*/
 
 	return indices;
 }
@@ -232,6 +281,8 @@ std::vector<Texture> Model::GetTextures()
 	std::string fileStr = std::string(file);
 	std::string fileDirectory = fileStr.substr(0, fileStr.find_last_of('/') + 1);
 
+	std::cout << "Begin searching for images" << std::endl;
+
 	for (unsigned int i = 0; i < JSON["images"].size(); i++)
 	{
 		std::string texPath = JSON["images"][i]["uri"];
@@ -241,6 +292,7 @@ std::vector<Texture> Model::GetTextures()
 		{
 			if (loadedTexName[j] == texPath)
 			{
+				std::cout << "Found image: " << texPath << std::endl;
 				textures.push_back(loadedTex[j]);
 				skip = true;
 				break;
@@ -248,15 +300,18 @@ std::vector<Texture> Model::GetTextures()
 		}
 		if (!skip)
 		{
-			if (texPath.find("baseColor") != std::string::npos)
+			if (texPath.find("baseColor") != std::string::npos || texPath.find("diffuse") != std::string::npos)
 			{
+				printf("Found diffuse texture");
 				Texture diffuse = Texture((fileDirectory + texPath).c_str(), "diffuse", loadedTex.size());
 				textures.push_back(diffuse);
 				loadedTex.push_back(diffuse);
 				loadedTexName.push_back(texPath);
 			}
-			else if (texPath.find("metallicRoughness") != std::string::npos)
+			// Load specular texture
+			else if (texPath.find("metallicRoughness") != std::string::npos || texPath.find("specular") != std::string::npos)
 			{
+				printf("Found specular texture");
 				Texture specular = Texture((fileDirectory + texPath).c_str(), "specular", loadedTex.size());
 				textures.push_back(specular);
 				loadedTex.push_back(specular);
@@ -272,7 +327,7 @@ std::vector<Vertex> Model::AssembleVertices
 (
 	std::vector<glm::vec3> positions,
 	std::vector<glm::vec3> normals,
-	std::vector<glm::vec2> texUV
+	std::vector<glm::vec2> texUVs
 )
 {
 	std::vector<Vertex> vertices;
@@ -285,7 +340,7 @@ std::vector<Vertex> Model::AssembleVertices
 				positions[i],
 				normals[i],
 				glm::vec3(1.0f, 1.0f, 1.0f),
-				texUV[i]
+				texUVs[i]
 			}
 		);
 	}

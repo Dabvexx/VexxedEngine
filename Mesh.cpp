@@ -48,7 +48,7 @@ void Mesh::Draw(
 		{
 			num = std::to_string(numDiffuse++);
 		}
-		else if(type == "diffuse")
+		else if (type == "specular")
 		{
 			num = std::to_string(numSpecular++);
 		}
@@ -70,6 +70,8 @@ void Mesh::Draw(
 	trans = glm::translate(trans, translation);
 	rot = glm::mat4_cast(rotation);
 	sca = glm::scale(sca, scale);
+
+	// Model should probably be rotated 180 degrees in the matrix
 
 	glUniformMatrix4fv(glGetUniformLocation(shader.ID, "translation"), 1, GL_FALSE, glm::value_ptr(trans));
 	glUniformMatrix4fv(glGetUniformLocation(shader.ID, "rotation"), 1, GL_FALSE, glm::value_ptr(rot));

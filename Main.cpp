@@ -115,7 +115,7 @@ int main()
 
 	Camera camera(windowWidth, windowHeight, glm::vec3(0.0f, 0.0f, 2.0f));
 
-	Model model("Model/cube/cube.gltf");
+	Model model("Model/test2/test2.gltf");
 
 	// Main while loop.
 	// This is probably where we will also run update, physics, ect.
