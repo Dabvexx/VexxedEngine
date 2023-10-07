@@ -1,4 +1,2 @@
-﻿  Main.cpp
-C:\Users\Alex\Documents\GitHub\VexxedEngine\Main.cpp(20,11): warning C4305: 'return': truncation from 'int' to 'bool'
-C:\Users\Alex\Documents\GitHub\VexxedEngine\Main.cpp(31): warning C4715: 'InitGL': not all control paths return a value
+﻿  Texture.cpp
   VexxedEngine.vcxproj -> C:\Users\Alex\Documents\GitHub\VexxedEngine\x64\Debug\VexxedEngine.exe

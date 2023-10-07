@@ -13,7 +13,7 @@ Texture::Texture(const char* image, const char* texType, GLuint slot)
 	// Flips the image so it appears right side up
 	stbi_set_flip_vertically_on_load(true);
 	// Reads the image from a file and stores it in bytes
-	unsigned char* bytes = stbi_load(image, &imgWidth, &imgHeight, &numColCh, STBI_rgb_alpha);
+	unsigned char* bytes = stbi_load(image, &imgWidth, &imgHeight, &numColCh, 0);
 
 	if (bytes == NULL) {
 		printf("Error loading texture %s\nReason: %s", image, stbi_failure_reason());

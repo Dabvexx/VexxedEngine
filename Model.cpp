@@ -300,7 +300,7 @@ std::vector<Texture> Model::GetTextures()
 		}
 		if (!skip)
 		{
-			if (texPath.find("baseColor") != std::string::npos || texPath.find("diffuse") != std::string::npos)
+			if (texPath.find("Wood_plancks_006_COLOR") != std::string::npos || texPath.find("diffuse") != std::string::npos)
 			{
 				printf("Found diffuse texture");
 				Texture diffuse = Texture((fileDirectory + texPath).c_str(), "diffuse", loadedTex.size());

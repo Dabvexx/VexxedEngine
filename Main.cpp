@@ -10,6 +10,16 @@ void SetSkyBoxColor(glm::vec4 skyBoxColor)
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
+float deltaTime = 0.0f;
+float lastFrame = 0.0f;
+
+void CalculateDeltaTime() 
+{
+	float currentFrame = glfwGetTime();
+	deltaTime = currentFrame - lastFrame;
+	lastFrame = currentFrame;
+}
+
 bool InitGL(GLFWwindow* window)
 {
 	// Put all the setup and window code in here, also probably return that window or have it as an out.
@@ -112,16 +122,19 @@ int main()
 
 	// Enable depth buffer
 	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LESS);
 
 	Camera camera(windowWidth, windowHeight, glm::vec3(0.0f, 0.0f, 2.0f));
 
-	Model model("Model/test2/test2.gltf");
+	Model model("Model/test4/test4.gltf");
 
 	// Main while loop.
 	// This is probably where we will also run update, physics, ect.
 	while (!glfwWindowShouldClose(window) and glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS)
 	{
 		SetSkyBoxColor(glm::vec4(0.07f, 0.13f, 0.17f, 1.0f));
+
+		CalculateDeltaTime();
 
 		// Handle camera inputs, will probably detach this from the camera itself eventually.
 		camera.Inputs(window);

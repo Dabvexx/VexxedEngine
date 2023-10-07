@@ -48,9 +48,9 @@
 		{
 			"doubleSided":true,
 			"emissiveFactor":[
-				0.0931740403175354,
-				0.2522560656070709,
-				0.3044453561306
+				0.027952210429178947,
+				0.07567681517143132,
+				0.0913336013952728
 			],
 			"extensions":{
 				"KHR_materials_transmission":{
@@ -185,10 +185,6 @@
 		},
 		{
 			"sampler":0,
-			"source":1
-		},
-		{
-			"sampler":0,
 			"source":2
 		},
 		{
@@ -197,7 +193,11 @@
 		},
 		{
 			"sampler":0,
-			"source":3
+			"source":4
+		},
+		{
+			"sampler":0,
+			"source":4
 		}
 	],
 	"images":[
@@ -210,6 +210,11 @@
 			"mimeType":"image/png",
 			"name":"5blockedmessages",
 			"uri":"5blockedmessages.png"
+		},
+		{
+			"mimeType":"image/png",
+			"name":"Nebula",
+			"uri":"Nebula.png"
 		},
 		{
 			"mimeType":"image/png",

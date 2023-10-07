@@ -17,7 +17,8 @@ class Material
 		float roughnessFactor;
 
 		bool usingBaseTexture;
-
+		glm::vec4 baseColor;
+		
 		// Get either the baseColorTexture or the baseColorFactor RGBA values depending on which exists using node.find
 		void GetBaseColor(unsigned int nextNode);
 };
