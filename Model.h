@@ -3,6 +3,7 @@
 
 #include<Json/Json.h>
 #include"Mesh.h"
+#include"Material.h"
 
 using json = nlohmann::json;
 
@@ -19,6 +20,7 @@ class Model
 		json JSON;
 
 		std::vector<Mesh> meshes;
+		std::vector<Material> materials;
 
 		std::vector<glm::vec3> translationsMeshes;
 		std::vector<glm::quat> rotationsMeshes;
@@ -35,6 +37,7 @@ class Model
 		std::vector<unsigned char> GetData();
 		std::vector<float> GetFloats(json accessor);
 		std::vector<GLuint> GetIndices(json accessor);
+		//std::vector<Material> GetMaterials();
 		std::vector<Texture> GetTextures();
 
 		std::vector<Vertex> AssembleVertices
@@ -43,6 +46,9 @@ class Model
 			std::vector<glm::vec3> normals,
 			std::vector<glm::vec2> texUV
 		);
+
+		//void GetBaseColor(unsigned int nextNode);
+		void GetImageTextureFromIndex(unsigned int index, const char* type);
 
 		std::vector<glm::vec2> GroupFloatsVec2(std::vector<float> floatVec);
 		std::vector<glm::vec3> GroupFloatsVec3(std::vector<float> floatVec);

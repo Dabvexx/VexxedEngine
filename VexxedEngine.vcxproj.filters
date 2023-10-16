@@ -86,6 +86,12 @@
     <None Include="cube.gltf">
       <Filter>Resource Files\Models</Filter>
     </None>
+    <None Include="outlining.frag">
+      <Filter>Resource Files\Shaders</Filter>
+    </None>
+    <None Include="outlining.vert">
+      <Filter>Resource Files\Shaders</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ShaderClass.h">

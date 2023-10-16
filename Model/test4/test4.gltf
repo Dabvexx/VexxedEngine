@@ -86,8 +86,8 @@
 	"images":[
 		{
 			"mimeType":"image/png",
-			"name":"Image",
-			"uri":"Image.png"
+			"name":"specular",
+			"uri":"specular.png"
 		},
 		{
 			"mimeType":"image/jpeg",
@@ -96,8 +96,8 @@
 		},
 		{
 			"mimeType":"image/jpeg",
-			"name":"Wood_plancks_006_COLOR",
-			"uri":"Wood_plancks_006_COLOR.jpg"
+			"name":"diffuse",
+			"uri":"diffuse.jpg"
 		}
 	],
 	"accessors":[

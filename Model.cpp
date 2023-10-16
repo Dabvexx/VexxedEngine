@@ -300,7 +300,9 @@ std::vector<Texture> Model::GetTextures()
 		}
 		if (!skip)
 		{
-			if (texPath.find("Wood_plancks_006_COLOR") != std::string::npos || texPath.find("diffuse") != std::string::npos)
+			// find material image uri here.
+
+			if (texPath.find("baseColor") != std::string::npos || texPath.find("diffuse") != std::string::npos)
 			{
 				printf("Found diffuse texture");
 				Texture diffuse = Texture((fileDirectory + texPath).c_str(), "diffuse", loadedTex.size());
@@ -321,6 +323,55 @@ std::vector<Texture> Model::GetTextures()
 	}
 
 	return textures;
+}
+
+/*void Model::GetBaseColor(unsigned int nextNode) {
+
+	json node = JSON["materials"][nextNode]["pbrMetallicRoughness"];
+
+	// Select wether base color or base texture exists.
+	glm::vec4 baseColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+	if (node.find("baseColorFactor") != std::string::npos)
+	{
+		usingBaseTexture = false;
+
+		float color[4];
+		for (unsigned int i = 0; i < node["pbrMetallicRoughness"]["baseColorFactor"].size(); i++)
+		{
+			color[i] = node["pbrMetallicRoughness"]["baseColorFactor"][i];
+		}
+
+		// RGBA values.
+		baseColor = glm::make_vec4(color);
+	}
+
+	// save as texture
+	else if (node.find("baseColorTexture") != std::string::npos)
+	{
+		usingBaseTexture = true;
+
+		// Pass index into texture finding func.
+		GetTextureFromIndex(node[baseColorTexture][index], "diffuse");
+	}
+}
+
+void GetTexturesFromMaterial() 
+{
+
+}*/
+
+void Model::GetImageTextureFromIndex(unsigned int index, const char* type)
+{
+	// Sampler will set if texture wrap mirror or streatch.
+	unsigned int sampler = JSON["textures"][index]["sampler"];
+	unsigned int sourceIndex = JSON["textures"][index]["source"];
+
+	std::string fileStr = std::string(file);
+	std::string fileDirectory = fileStr.substr(0, fileStr.find_last_of('/') + 1);
+
+	std::string texPath = JSON["images"][sourceIndex]["uri"];
+
+	Texture tex = Texture((fileDirectory + texPath).c_str(), type, loadedTex.size());
 }
 
 std::vector<Vertex> Model::AssembleVertices

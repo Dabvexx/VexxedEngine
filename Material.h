@@ -11,7 +11,7 @@ class Material
 {
 	public:
 		bool doubleSided;
-		//glm::vec4 emissiveColor;
+		//glm::vec3 emissiveColor;
 
 		float metalicFactor;
 		float roughnessFactor;
@@ -19,8 +19,9 @@ class Material
 		bool usingBaseTexture;
 		glm::vec4 baseColor;
 		
+		
 		// Get either the baseColorTexture or the baseColorFactor RGBA values depending on which exists using node.find
-		void GetBaseColor(unsigned int nextNode);
+		//void GetBaseColor(unsigned int nextNode);
 };
 
 #endif // !MATERIAL_CLASS_H

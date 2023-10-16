@@ -6,8 +6,6 @@ void SetSkyBoxColor(glm::vec4 skyBoxColor)
 {
 	// Specify background color.
 	glClearColor(skyBoxColor.x, skyBoxColor.y, skyBoxColor.z, skyBoxColor.w);
-	// Clear back and depth buffer.
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
 float deltaTime = 0.0f;
@@ -111,22 +109,35 @@ int main()
 
 	Shader shaderProgram("default.vert", "default.frag");
 
+	Shader outliningProgram("outlining.vert", "outlining.frag");
+
 	glm::vec4 lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 	glm::vec3 lightPos = glm::vec3(0.5f, 0.5f, 0.5f);
-	glm::mat4 lightModel = glm::mat4(1.0f);
-	lightModel = glm::translate(lightModel, lightPos);
 
 	shaderProgram.Activate();
 	glUniform4f(glGetUniformLocation(shaderProgram.ID, "lightColor"), lightColor.x, lightColor.y, lightColor.z, lightColor.w);
-	glUniform3f(glGetUniformLocation(shaderProgram.ID, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
+	glUniform3f(glGetUniformLocation(shaderProgram.ID, "lightPos"), 0, 5, 0);
 
 	// Enable depth buffer
 	glEnable(GL_DEPTH_TEST);
+
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_FRONT);
+	glFrontFace(GL_CCW);
+
+	glEnable(GL_STENCIL_TEST);
+	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+
 	glDepthFunc(GL_LESS);
 
 	Camera camera(windowWidth, windowHeight, glm::vec3(0.0f, 0.0f, 2.0f));
 
-	Model model("Model/test4/test4.gltf");
+	Model model0("Model/test/test.gltf");
+
+	unsigned int counter = 0;
+
+	// Uncomment to disable VSync
+	// glfwSwapInterval(0);
 
 	// Main while loop.
 	// This is probably where we will also run update, physics, ect.
@@ -134,7 +145,24 @@ int main()
 	{
 		SetSkyBoxColor(glm::vec4(0.07f, 0.13f, 0.17f, 1.0f));
 
-		CalculateDeltaTime();
+		// Clear back and depth buffer and stencil buffer.
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+		// CalculateDeltaTime();
+		float currentFrame = glfwGetTime();
+		deltaTime = currentFrame - lastFrame;
+		counter++;
+
+		// Calculate fps and ms to calculate frame.
+		if (deltaTime >= 1.0 / 30.0)
+		{
+			std::string FPS = std::to_string((1.0 / deltaTime) * counter);
+			std::string ms = std::to_string((deltaTime / counter) / 1000);
+			std::string newTitle = "Vexxed Engine - " + FPS + "Fps / " + ms + "ms";
+			glfwSetWindowTitle(window, newTitle.c_str());
+			lastFrame = currentFrame;
+			counter = 0;
+		}
 
 		// Handle camera inputs, will probably detach this from the camera itself eventually.
 		camera.Inputs(window);
@@ -142,7 +170,24 @@ int main()
 		// Update and export camera matrix to vertex shader.
 		camera.UpdateMatrix(45.0f, 0.1f, 100.0f);
 
-		model.Draw(shaderProgram, camera);
+		// Set stencil buffer parameters.
+		glStencilFunc(GL_ALWAYS, 1, 0xFF);
+		glStencilMask(0xFF);
+
+		model0.Draw(shaderProgram, camera);
+
+		glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+		glStencilMask(0x00);
+		glDisable(GL_DEPTH_TEST);
+		
+		// draw outlining program.
+		outliningProgram.Activate();
+		glUniform1f(glGetUniformLocation(outliningProgram.ID, "outlining"), 1.08f);
+		//model0.Draw(outliningProgram, camera);
+
+		glStencilMask(0xFF);
+		glStencilFunc(GL_ALWAYS, 0, 0xFF);
+		glEnable(GL_DEPTH_TEST);
 
 		// Swap the current buffer with the back buffer we just edited.
 		glfwSwapBuffers(window);
