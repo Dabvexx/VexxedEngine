@@ -53,6 +53,19 @@ bool InitGL(GLFWwindow* window)
 	}
 }*/
 
+// Rectangle for framebuffer.
+float rectangleVertices[] =
+{
+	// Coords    // texCoords
+	 1.0f, -1.0f,  1.0f, 0.0f,
+	-1.0f, -1.0f,  0.0f, 0.0f,
+	-1.0f,  1.0f,  0.0f, 1.0f,
+
+	 1.0f,  1.0f,  1.0f, 1.0f,
+	 1.0f, -1.0f,  1.0f, 0.0f,
+	-1.0f,  1.0f,  0.0f, 1.0f
+};
+
 int main()
 {
 	// Specify the window width, height, and name.
@@ -108,7 +121,8 @@ int main()
 	glViewport(0, 0, windowHeight, windowHeight);
 
 	Shader shaderProgram("default.vert", "default.frag");
-
+	Shader transparentProgram("default.vert", "transparent.frag");
+	Shader framebufferProgram("framebuffer.vert", "framebuffer.frag");
 	Shader outliningProgram("outlining.vert", "outlining.frag");
 
 	glm::vec4 lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
@@ -117,6 +131,11 @@ int main()
 	shaderProgram.Activate();
 	glUniform4f(glGetUniformLocation(shaderProgram.ID, "lightColor"), lightColor.x, lightColor.y, lightColor.z, lightColor.w);
 	glUniform3f(glGetUniformLocation(shaderProgram.ID, "lightPos"), 0, 5, 0);
+	transparentProgram.Activate();
+	glUniform4f(glGetUniformLocation(transparentProgram.ID, "lightColor"), lightColor.x, lightColor.y, lightColor.z, lightColor.w);
+	glUniform3f(glGetUniformLocation(transparentProgram.ID, "lightPos"), 0, 5, 0);
+	framebufferProgram.Activate();
+	glUniform1i(glGetUniformLocation(framebufferProgram.ID, "screenTexture"), 0);
 
 	// Enable depth buffer
 	glEnable(GL_DEPTH_TEST);
@@ -128,26 +147,64 @@ int main()
 	glEnable(GL_STENCIL_TEST);
 	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 
-	glDepthFunc(GL_LESS);
+	//glDepthFunc(GL_LESS);
 
 	Camera camera(windowWidth, windowHeight, glm::vec3(0.0f, 0.0f, 2.0f));
 
 	Model model0("Model/test/test.gltf");
+	Model grass("Model/Grass/grass.gltf");
 
-	unsigned int counter = 0;
+
+	// Prepare framebuffer rectangle VBO and VAO
+	unsigned int rectVAO, rectVBO;
+	glGenVertexArrays(1, &rectVAO);
+	glGenBuffers(1, &rectVBO);
+	glBindVertexArray(rectVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, rectVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(rectangleVertices), &rectangleVertices, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+
+	// Create Frame Buffer Object
+	unsigned int FBO;
+	glGenFramebuffers(1, &FBO);
+	glBindFramebuffer(GL_FRAMEBUFFER, FBO);
+
+	// Create Framebuffer Texture
+	unsigned int framebufferTexture;
+	glGenTextures(1, &framebufferTexture);
+	glBindTexture(GL_TEXTURE_2D, framebufferTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, windowWidth, windowHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); // Prevents edge bleeding
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE); // Prevents edge bleeding
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, framebufferTexture, 0);
+
+	// Create Render Buffer Object
+	unsigned int RBO;
+	glGenRenderbuffers(1, &RBO);
+	glBindRenderbuffer(GL_RENDERBUFFER, RBO);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, windowWidth, windowHeight);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, RBO);
+
+
+	// Error checking framebuffer
+	auto fboStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+	if (fboStatus != GL_FRAMEBUFFER_COMPLETE)
+		std::cout << "Framebuffer error: " << fboStatus << std::endl;
 
 	// Uncomment to disable VSync
 	// glfwSwapInterval(0);
+
+	unsigned int counter = 0;
 
 	// Main while loop.
 	// This is probably where we will also run update, physics, ect.
 	while (!glfwWindowShouldClose(window) and glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS)
 	{
-		SetSkyBoxColor(glm::vec4(0.07f, 0.13f, 0.17f, 1.0f));
-
-		// Clear back and depth buffer and stencil buffer.
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-
 		// CalculateDeltaTime();
 		float currentFrame = glfwGetTime();
 		deltaTime = currentFrame - lastFrame;
@@ -164,6 +221,13 @@ int main()
 			counter = 0;
 		}
 
+		glBindFramebuffer(GL_FRAMEBUFFER, FBO);
+
+		SetSkyBoxColor(glm::vec4(0.07f, 0.13f, 0.17f, 1.0f));
+		// Clear back and depth buffer and stencil buffer.
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+		glEnable(GL_DEPTH_TEST);
+
 		// Handle camera inputs, will probably detach this from the camera itself eventually.
 		camera.Inputs(window);
 
@@ -174,9 +238,14 @@ int main()
 		glStencilFunc(GL_ALWAYS, 1, 0xFF);
 		glStencilMask(0xFF);
 
+		//model0.Draw(shaderProgram, camera);
+		glDisable(GL_CULL_FACE);
+		//grass.Draw(transparentProgram, camera);
+		glEnable(GL_CULL_FACE);
+
 		model0.Draw(shaderProgram, camera);
 
-		glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+		glStencilFunc(GL_NOTEQUAL, 1, 0xFF); 
 		glStencilMask(0x00);
 		glDisable(GL_DEPTH_TEST);
 		
@@ -189,6 +258,15 @@ int main()
 		glStencilFunc(GL_ALWAYS, 0, 0xFF);
 		glEnable(GL_DEPTH_TEST);
 
+		// Bind the default framebuffer
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		// Draw the framebuffer rectangle
+		framebufferProgram.Activate();
+		glBindVertexArray(rectVAO);
+		glDisable(GL_CULL_FACE);
+		glDisable(GL_DEPTH_TEST); // prevents framebuffer rectangle from being discarded
+		glBindTexture(GL_TEXTURE_2D, framebufferTexture);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
 		// Swap the current buffer with the back buffer we just edited.
 		glfwSwapBuffers(window);
 

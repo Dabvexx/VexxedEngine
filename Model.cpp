@@ -301,6 +301,8 @@ std::vector<Texture> Model::GetTextures()
 		if (!skip)
 		{
 			// find material image uri here.
+			// get material index through mesh
+			// get image texture through material
 
 			if (texPath.find("baseColor") != std::string::npos || texPath.find("diffuse") != std::string::npos)
 			{
