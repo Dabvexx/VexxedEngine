@@ -148,7 +148,8 @@
     <ClCompile Include="Model.cpp" />
     <ClCompile Include="Perlin.cpp" />
     <ClCompile Include="ShaderClass.cpp" />
-    <ClCompile Include="stb.cpp" />
+    <ClCompile Include="stb_image.cpp" />
+    <ClCompile Include="stb_write.cpp" />
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="VAO.cpp" />
     <ClCompile Include="VBO.cpp" />
@@ -158,11 +159,14 @@
   <ItemGroup>
     <None Include="cube.gltf" />
     <None Include="default.frag" />
+    <None Include="default.geom" />
     <None Include="default.vert" />
     <None Include="framebuffer.frag" />
     <None Include="framebuffer.vert" />
     <None Include="light.frag" />
     <None Include="light.vert" />
+    <None Include="normals.frag" />
+    <None Include="normals.geom" />
     <None Include="outlining.frag" />
     <None Include="outlining.vert" />
     <None Include="skybox.frag" />

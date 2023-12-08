@@ -21,6 +21,7 @@ Texture::Texture(const char* image, const char* texType, GLuint slot)
 	}
 	printf("Texture %s loaded with width of %d, height of %d, and %d channels\n", image, imgWidth, imgHeight, numColCh);
 
+	std::cout << (int)bytes[0] << " " << (int)bytes[1] << " " << (int)bytes[2] << " " << (int)bytes[3] << std::endl;
 	// Generates an OpenGL texture object
 	glGenTextures(1, &ID);
 	// Assigns the texture to a Texture Unit
@@ -39,9 +40,6 @@ Texture::Texture(const char* image, const char* texType, GLuint slot)
 	// Extra lines in case you choose to use GL_CLAMP_TO_BORDER
 	// float flatColor[] = {1.0f, 1.0f, 1.0f, 1.0f};
 	// glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, flatColor);
-
-	// Assigns the image to the OpenGL Texture object
-	//glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
 	if (numColCh == 4)
 		glTexImage2D
@@ -94,6 +92,67 @@ Texture::Texture(const char* image, const char* texType, GLuint slot)
 	// Unbinds the OpenGL Texture object so that it can't accidentally be modified
 	glBindTexture(GL_TEXTURE_2D, 0);
 	printf("Finished loading texture: %s\n", image);
+}
+
+Texture::Texture(float color[4], const char* texType, GLuint slot)
+{
+	printf("Begin loading base color texture");
+	// Generates an OpenGL texture object
+	glGenTextures(1, &ID);
+	// Assigns the texture to a Texture Unit
+	glActiveTexture(GL_TEXTURE0 + slot);
+	unit = slot;
+	glBindTexture(GL_TEXTURE_2D, ID);
+
+	// Configures the type of algorithm that is used to make the image smaller or bigger
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+	// Configures the way the texture repeats (if it does at all)
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+	// Extra lines in case you choose to use GL_CLAMP_TO_BORDER
+	// float flatColor[] = {1.0f, 1.0f, 1.0f, 1.0f};
+	// glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, flatColor);
+
+	// Assigns the image to the OpenGL Texture object
+	//glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+	// This is the most probably source of the issue, loading this data as image data.
+	// needs to be convered to unsigned char with size of 4 * sizeof unsigned char
+	// No idea im to tired for this shit rn
+	unsigned char data[4] = 
+	{ 
+		color[0],
+		color[1],
+		color[2],
+		color[3]
+		/*(int)powf(color[0], 1 / 2.2) * 255,
+		(int)powf(color[1], 1 / 2.2) * 255,
+		(int)powf(color[2], 1 / 2.2) * 255,
+		(int)powf(color[3], 1 / 2.2) * 255,*/
+	};
+
+		glTexImage2D
+		(
+			GL_TEXTURE_2D,
+			0,
+			GL_RGBA,
+			1,
+			1,
+			0,
+			GL_RGBA,
+			GL_UNSIGNED_BYTE,
+			data
+		);
+
+		// Generates MipMaps
+		glGenerateMipmap(GL_TEXTURE_2D);
+
+		// Unbinds the OpenGL Texture object so that it can't accidentally be modified
+		glBindTexture(GL_TEXTURE_2D, 0);
+		printf("Finished loading color as texture\n");
 }
 
 void Texture::texUnit(Shader& shader, const char* uniform, GLuint unit)

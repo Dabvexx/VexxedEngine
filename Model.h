@@ -4,6 +4,7 @@
 #include<Json/Json.h>
 #include"Mesh.h"
 #include"Material.h"
+#include<stb/stb_image_write.h>
 
 using json = nlohmann::json;
 
@@ -38,7 +39,7 @@ class Model
 		std::vector<float> GetFloats(json accessor);
 		std::vector<GLuint> GetIndices(json accessor);
 		//std::vector<Material> GetMaterials();
-		std::vector<Texture> GetTextures();
+		std::vector<Texture> GetTextures(json accessor);
 
 		std::vector<Vertex> AssembleVertices
 		(

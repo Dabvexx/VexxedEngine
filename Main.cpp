@@ -38,6 +38,16 @@ bool InitGL(GLFWwindow* window)
 	glEnable(GL_DEPTH_TEST);
 }
 
+/*void PlaneDemo()
+{
+
+}
+
+void StencilDemo()
+{
+
+}*/
+
 // Make function that will cap framerate as well as calculate delta time.
 /*bool FixedTimeStep(int fps, float& outDeltaTime)
 {
@@ -142,11 +152,12 @@ int main()
 	// Specify the OpenGL Viewport in the window.
 	glViewport(0, 0, windowHeight, windowHeight);
 
-	Shader shaderProgram("default.vert", "default.frag");
-	Shader transparentProgram("default.vert", "transparent.frag");
-	Shader framebufferProgram("framebuffer.vert", "framebuffer.frag");
-	Shader outliningProgram("outlining.vert", "outlining.frag");
+	Shader shaderProgram("default.vert", "default.frag", "default.geom");
+	Shader transparentProgram("default.vert", "transparent.frag", "default.geom");
+	Shader framebufferProgram("framebuffer.vert", "framebuffer.frag", "default.geom");
+	Shader outliningProgram("outlining.vert", "outlining.frag", "default.geom");
 	Shader skyboxShader("skybox.vert", "skybox.frag");
+	Shader normalsShader("default.vert", "normals.frag", "normals.geom");
 
 	glm::vec4 lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 	glm::vec3 lightPos = glm::vec3(0.5f, 0.5f, 0.5f);
@@ -165,6 +176,7 @@ int main()
 	// Enable depth buffer
 	glEnable(GL_DEPTH_TEST);
 
+
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_FRONT);
 	glFrontFace(GL_CCW);
@@ -177,7 +189,8 @@ int main()
 	Camera camera(windowWidth, windowHeight, glm::vec3(0.0f, 0.0f, 10.0f));
 
 	Model model0("Model/plane/scene.gltf");
-	//Model grass("Model/Grass/grass.gltf");
+
+	//Model[60] models;
 
 	// Create VAO, VBO, and EBO for the skybox
 	unsigned int skyboxVAO, skyboxVBO, skyboxEBO;
@@ -284,6 +297,7 @@ int main()
 		camera.UpdateMatrix(45.0f, 0.1f, 100.0f);
 
 		model0.Draw(shaderProgram, camera);
+		//model0.Draw(normalsShader, camera);
 
 		// Since the cubemap will always have a depth of 1.0, we need that equal sign so it doesn't get discarded
 		glDepthFunc(GL_LEQUAL);
@@ -309,7 +323,7 @@ int main()
 		// Switch back to the normal depth function
 		glDepthFunc(GL_LESS);
 
-		// Swap the current buffer with the back buffer we just edited.
+		// Swap the current buffer with the back buffer we just edited.    
 		glfwSwapBuffers(window);
 
 		// Service all GLFW events.
@@ -327,3 +341,4 @@ int main()
 	glfwTerminate();
 	return 0;
 }
+ 

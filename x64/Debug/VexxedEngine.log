@@ -1,6 +1,6 @@
 ﻿  Main.cpp
 C:\Users\Alex\Documents\GitHub\VexxedEngine\Main.cpp(16,21): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
 C:\Users\Alex\Documents\GitHub\VexxedEngine\Main.cpp(28,11): warning C4305: 'return': truncation from 'int' to 'bool'
-C:\Users\Alex\Documents\GitHub\VexxedEngine\Main.cpp(260,22): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\Alex\Documents\GitHub\VexxedEngine\Main.cpp(273,22): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
 C:\Users\Alex\Documents\GitHub\VexxedEngine\Main.cpp(39): warning C4715: 'InitGL': not all control paths return a value
   VexxedEngine.vcxproj -> C:\Users\Alex\Documents\GitHub\VexxedEngine\x64\Debug\VexxedEngine.exe

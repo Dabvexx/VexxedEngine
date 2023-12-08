@@ -62,11 +62,14 @@ void Model::LoadMesh(unsigned int indMesh)
 	std::vector <float> texVec = GetFloats(JSON["accessors"][texAccInd]);
 	std::vector <glm::vec2> texUVs = GroupFloatsVec2(texVec);
 	// material = JSON["materials"][matAccInd];
-
+	std::cout << "Assembling vertices" << std::endl;
 	std::vector<Vertex> vertices = AssembleVertices(positions, normals, texUVs);
+	std::cout << "Getting indices" << std::endl;
 	std::vector<GLuint> indices = GetIndices(JSON["accessors"][indAccInd]);
-	std::vector<Texture> textures = GetTextures();
+	std::cout << "Getting textures" << std::endl;
+	std::vector<Texture> textures = GetTextures(JSON["meshes"][indMesh]["primitives"][0]);
 
+	std::cout << "Finished loading mesh" << std::endl;
 	meshes.push_back(Mesh(vertices, indices, textures));
 }
 
@@ -151,6 +154,8 @@ void Model::TraverseNode(unsigned int nextNode, glm::mat4 matrix)
 		rotationsMeshes.push_back(rotation);
 		scalesMeshes.push_back(scale);
 		matricesMeshes.push_back(matNextNode);
+
+		std::cout << "Loading mesh" << std::endl;
 
 		LoadMesh(node["mesh"]);
 	}
@@ -274,9 +279,134 @@ std::vector<GLuint> Model::GetIndices(json accessor)
 	return indices;
 }
 
-std::vector<Texture> Model::GetTextures()
+std::vector<Texture> Model::GetTextures(json accessor)
 {
+	std::cout << "Looking for material" << std::endl;
+	// See if a material exists on the object
+	unsigned int materialInd;
+
 	std::vector<Texture> textures;
+
+	std::string fileStr = std::string(file);
+	std::string fileDirectory = fileStr.substr(0, fileStr.find_last_of('/') + 1);
+
+	if (accessor.find("material") != accessor.end())
+	{
+		printf("Found material\n");
+		// Get the material index
+		materialInd = accessor["material"];
+	}
+	else
+	{
+		// create a black texture
+		// put in a vector
+		// return just that
+		float color[3] =
+		{
+			0,
+			0,
+			0,
+		};
+
+		// Save the RGB texture to a temporary image file
+		const char* textureName = "TempRgbTexture" + loadedTex.size();
+		stbi_write_png(textureName, 1, 1, 3, color, loadedTex.size());
+
+		// Use the existing Texture class by passing the image file path
+		Texture diffuse(textureName, "diffuse", 0);
+		textures.push_back(diffuse);
+		loadedTex.push_back(diffuse);
+		loadedTexName.push_back(textureName);
+
+		// Delete the temporary image file
+		remove(textureName);
+		return textures;
+	}
+
+	json matPath = JSON["materials"][materialInd]["pbrMetallicRoughness"];
+
+	// Check if this uses basecolor or baseColorTexture.
+	unsigned int texInd;
+	printf("Checking for baseColorType\n");
+
+	if (matPath.find("baseColorTexture") != matPath.end())
+	{
+		printf("Found Base Color Texture\n");
+		// Get the index into the images array.
+		texInd = matPath["baseColorTexture"]["index"];
+
+		// First check if there is a textures node
+		// If there is, go to the index of the textures node, 
+		// get the source, then use the image[source] and use that as the image
+
+		unsigned int texSourceInd = JSON["textures"][texInd]["source"];
+
+		std::string texPath = JSON["images"][texSourceInd]["uri"];
+
+		bool skip = false;
+		for (unsigned int j = 0; j < loadedTexName.size(); j++)
+		{
+			if (loadedTexName[j] == texPath)
+			{
+				std::cout << "Found image: " << texPath << std::endl;
+				textures.push_back(loadedTex[j]);
+				skip = true;
+				break;
+			}
+		}
+		if (!skip)
+		{
+				printf("Found diffuse texture at: %s\n", (fileDirectory + texPath).c_str());
+				Texture diffuse = Texture((fileDirectory + texPath).c_str(), "diffuse", loadedTex.size());
+				textures.push_back(diffuse);
+				loadedTex.push_back(diffuse);
+				loadedTexName.push_back(texPath);
+		}		
+	}
+	else if (matPath.find("baseColorFactor") != matPath.end())
+	{
+		printf("Found baseColorFactor\n");
+		printf("Creating temp texture\n");
+		// This will create a small 1x1 texture that is simply basecolor only.
+		// May be better to make a second texture constructor that takes a array and uses it as the bytes.
+		json colorData = matPath["baseColorFactor"];
+		float color[4] =
+		{ 
+			(float)colorData[0],
+			(float)colorData[1],
+			(float)colorData[2],
+			(float)colorData[3]
+		};
+
+		//color[0] = (int)(color[0] * 255);
+		//color[1] = (int)(color[1] * 255);
+		//color[2] = (int)(color[2] * 255);
+		//color[3] = (int)(color[3] * 255);
+
+		std::cout << "Color data: " <<
+			color[0] << " " <<
+			color[1] << " " <<
+			color[2] << " " <<
+			color[3] << std::endl;
+		//printf("Color data: %s, %s, %s, %s\n", color[0], color[1], color[2], color[3]);
+
+		// Save the RGB texture to a temporary image file
+		const char* textureName = "___TempRgbTexture" + loadedTex.size();
+		stbi_write_png(textureName, 1, 1, 4, color, loadedTex.size());
+
+		// Use the existing Texture class by passing the image file path
+		Texture diffuse(textureName, "diffuse", loadedTex.size());
+		textures.push_back(diffuse);
+		loadedTex.push_back(diffuse);
+		loadedTexName.push_back(textureName);
+
+		// Delete the temporary image file
+		remove(textureName);
+	}
+
+	// Go on to finding the specular textures.
+
+	/*std::vector<Texture> textures;
 
 	std::string fileStr = std::string(file);
 	std::string fileDirectory = fileStr.substr(0, fileStr.find_last_of('/') + 1);
@@ -322,10 +452,12 @@ std::vector<Texture> Model::GetTextures()
 				loadedTexName.push_back(texPath);
 			}
 		}
-	}
+	}*/
 
 	return textures;
 }
+
+
 
 /*void Model::GetBaseColor(unsigned int nextNode) {
 
