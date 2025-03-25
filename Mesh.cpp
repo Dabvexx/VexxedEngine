@@ -6,6 +6,11 @@ Mesh::Mesh(std::vector <Vertex>& vertices, std::vector <GLuint>& indices, std::v
 	Mesh::indices = indices;
 	Mesh::textures = textures;
 
+	for (unsigned int i = 0; i < textures.size(); i++)
+	{
+		std::cout << "Mesh has texture of ID: " << textures[i].ID << std::endl;
+	}
+
 	VAO.Bind();
 
 	VBO VBO(vertices);
@@ -51,6 +56,7 @@ void Mesh::Draw(
 		else if (type == "specular")
 		{
 			num = std::to_string(numSpecular++);
+
 		}
 		else if (type == "normal")
 		{

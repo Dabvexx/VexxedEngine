@@ -84,7 +84,7 @@ void Model::TraverseNode(unsigned int nextNode, glm::mat4 matrix)
 	glm::vec3 translation = glm::vec3(0.0f, 0.0f, 0.0f);
 	if (node.find("translation") != node.end())
 	{
-		std::cout << "Found translation" << std::endl;
+		//std::cout << "Found translation" << std::endl;
 		float transValues[3];
 		for (unsigned int i = 0; i < node["translation"].size(); i++)
 		{
@@ -97,14 +97,14 @@ void Model::TraverseNode(unsigned int nextNode, glm::mat4 matrix)
 	glm::quat rotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
 	if (node.find("rotation") != node.end())
 	{
-		std::cout << "Found rotation" << std::endl;
+		//std::cout << "Found rotation" << std::endl;
 
 		float rotValues[4] =
 		{
 			node["rotation"][3],
 			node["rotation"][0],
 			node["rotation"][1],
-			node["rotation"][2]
+			node["rotation"][2],
 		};
 		rotation = glm::make_quat(rotValues);
 	}
@@ -113,7 +113,7 @@ void Model::TraverseNode(unsigned int nextNode, glm::mat4 matrix)
 	glm::vec3 scale = glm::vec3(1.0f, 1.0f, 1.0f);
 	if (node.find("scale") != node.end())
 	{
-		std::cout << "Found scale" << std::endl;
+		//std::cout << "Found scale" << std::endl;
 		float scaleValues[3];
 		for (unsigned int i = 0; i < node["scale"].size(); i++)
 		{
@@ -125,7 +125,7 @@ void Model::TraverseNode(unsigned int nextNode, glm::mat4 matrix)
 	glm::mat4 matNode = glm::mat4(1.0f);
 	if (node.find("matrix") != node.end())
 	{
-		std::cout << "Found Matrix" << std::endl;
+		//std::cout << "Found Matrix" << std::endl;
 
 		float matValues[16];
 		for (unsigned int i = 0; i < node["matrix"].size(); i++)
@@ -146,16 +146,17 @@ void Model::TraverseNode(unsigned int nextNode, glm::mat4 matrix)
 	// Multiply all matrices together
 	glm::mat4 matNextNode = matrix * matNode * trans * rot * sca;
 
+
 	if (node.find("mesh") != node.end())
 	{
-		std::cout << "Found mesh" << std::endl;
+		//std::cout << "Found mesh" << std::endl;
 
 		translationsMeshes.push_back(translation);
 		rotationsMeshes.push_back(rotation);
 		scalesMeshes.push_back(scale);
 		matricesMeshes.push_back(matNextNode);
 
-		std::cout << "Loading mesh" << std::endl;
+		//std::cout << "Loading mesh" << std::endl;
 
 		LoadMesh(node["mesh"]);
 	}
@@ -301,6 +302,8 @@ std::vector<Texture> Model::GetTextures(json accessor)
 		// create a black texture
 		// put in a vector
 		// return just that
+		printf("Texture load failed\n");
+
 		float color[3] =
 		{
 			0,
@@ -340,6 +343,7 @@ std::vector<Texture> Model::GetTextures(json accessor)
 		// get the source, then use the image[source] and use that as the image
 
 		unsigned int texSourceInd = JSON["textures"][texInd]["source"];
+		// TODO: sampler stuff
 
 		std::string texPath = JSON["images"][texSourceInd]["uri"];
 
@@ -348,7 +352,7 @@ std::vector<Texture> Model::GetTextures(json accessor)
 		{
 			if (loadedTexName[j] == texPath)
 			{
-				std::cout << "Found image: " << texPath << std::endl;
+				std::cout << "Found loaded image: " << texPath << std::endl;
 				textures.push_back(loadedTex[j]);
 				skip = true;
 				break;
@@ -363,7 +367,7 @@ std::vector<Texture> Model::GetTextures(json accessor)
 				loadedTexName.push_back(texPath);
 		}		
 	}
-	else if (matPath.find("baseColorFactor") != matPath.end())
+	if (matPath.find("baseColorFactor") != matPath.end())
 	{
 		printf("Found baseColorFactor\n");
 		printf("Creating temp texture\n");
@@ -391,7 +395,7 @@ std::vector<Texture> Model::GetTextures(json accessor)
 		//printf("Color data: %s, %s, %s, %s\n", color[0], color[1], color[2], color[3]);
 
 		// Save the RGB texture to a temporary image file
-		const char* textureName = "___TempRgbTexture" + loadedTex.size();
+		const char* textureName = "TempRgbTexture" + loadedTex.size();
 		stbi_write_png(textureName, 1, 1, 4, color, loadedTex.size());
 
 		// Use the existing Texture class by passing the image file path
@@ -406,97 +410,15 @@ std::vector<Texture> Model::GetTextures(json accessor)
 
 	// Go on to finding the specular textures.
 
-	/*std::vector<Texture> textures;
-
-	std::string fileStr = std::string(file);
-	std::string fileDirectory = fileStr.substr(0, fileStr.find_last_of('/') + 1);
-
-	std::cout << "Begin searching for images" << std::endl;
-
-	for (unsigned int i = 0; i < JSON["images"].size(); i++)
-	{
-		std::string texPath = JSON["images"][i]["uri"];
-
-		bool skip = false;
-		for (unsigned int j = 0; j < loadedTexName.size(); j++)
-		{
-			if (loadedTexName[j] == texPath)
-			{
-				std::cout << "Found image: " << texPath << std::endl;
-				textures.push_back(loadedTex[j]);
-				skip = true;
-				break;
-			}
-		}
-		if (!skip)
-		{
-			// find material image uri here.
-			// get material index through mesh
-			// get image texture through material
-
-			if (texPath.find("baseColor") != std::string::npos || texPath.find("diffuse") != std::string::npos)
-			{
-				printf("Found diffuse texture");
-				Texture diffuse = Texture((fileDirectory + texPath).c_str(), "diffuse", loadedTex.size());
-				textures.push_back(diffuse);
-				loadedTex.push_back(diffuse);
-				loadedTexName.push_back(texPath);
-			}
-			// Load specular texture
-			else if (texPath.find("metallicRoughness") != std::string::npos || texPath.find("specular") != std::string::npos)
-			{
-				printf("Found specular texture");
-				Texture specular = Texture((fileDirectory + texPath).c_str(), "specular", loadedTex.size());
-				textures.push_back(specular);
-				loadedTex.push_back(specular);
-				loadedTexName.push_back(texPath);
-			}
-		}
-	}*/
+	// Go on to find metalic roughness textures
 
 	return textures;
 }
 
 
-
-/*void Model::GetBaseColor(unsigned int nextNode) {
-
-	json node = JSON["materials"][nextNode]["pbrMetallicRoughness"];
-
-	// Select wether base color or base texture exists.
-	glm::vec4 baseColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
-	if (node.find("baseColorFactor") != std::string::npos)
-	{
-		usingBaseTexture = false;
-
-		float color[4];
-		for (unsigned int i = 0; i < node["pbrMetallicRoughness"]["baseColorFactor"].size(); i++)
-		{
-			color[i] = node["pbrMetallicRoughness"]["baseColorFactor"][i];
-		}
-
-		// RGBA values.
-		baseColor = glm::make_vec4(color);
-	}
-
-	// save as texture
-	else if (node.find("baseColorTexture") != std::string::npos)
-	{
-		usingBaseTexture = true;
-
-		// Pass index into texture finding func.
-		GetTextureFromIndex(node[baseColorTexture][index], "diffuse");
-	}
-}
-
-void GetTexturesFromMaterial() 
-{
-
-}*/
-
 void Model::GetImageTextureFromIndex(unsigned int index, const char* type)
 {
-	// Sampler will set if texture wrap mirror or streatch.
+	// TODO: Sampler will set if texture wrap mirror or streatch.
 	unsigned int sampler = JSON["textures"][index]["sampler"];
 	unsigned int sourceIndex = JSON["textures"][index]["source"];
 

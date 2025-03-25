@@ -1,7 +1,13 @@
 #include "Texture.h"
 
+// Define the static variable
+GLuint Texture::next_id = 0;
+
 Texture::Texture(const char* image, const char* texType, GLuint slot)
 {
+	ID = next_id++;
+	static GLuint textureIDGlobal = 0;
+
 	printf("Begin loading texture: %s\n", image);
 	// assign texture type of texture object.
 	type = texType;
@@ -16,10 +22,10 @@ Texture::Texture(const char* image, const char* texType, GLuint slot)
 	unsigned char* bytes = stbi_load(image, &imgWidth, &imgHeight, &numColCh, 0);
 
 	if (bytes == NULL) {
-		printf("Error loading texture %s\nReason: %s", image, stbi_failure_reason());
+		printf("\nError loading texture %s\nReason: %s\n", image, stbi_failure_reason());
 		return;
 	}
-	printf("Texture %s loaded with width of %d, height of %d, and %d channels\n", image, imgWidth, imgHeight, numColCh);
+	printf("Texture %s of ID % d loaded with width of % d, height of % d, and %d channels\n",image, ID, imgWidth, imgHeight, numColCh);
 
 	std::cout << (int)bytes[0] << " " << (int)bytes[1] << " " << (int)bytes[2] << " " << (int)bytes[3] << std::endl;
 	// Generates an OpenGL texture object
@@ -96,6 +102,7 @@ Texture::Texture(const char* image, const char* texType, GLuint slot)
 
 Texture::Texture(float color[4], const char* texType, GLuint slot)
 {
+	ID = next_id++;
 	printf("Begin loading base color texture");
 	// Generates an OpenGL texture object
 	glGenTextures(1, &ID);

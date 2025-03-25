@@ -24,6 +24,9 @@ class Texture
 		void Unbind();
 		// Deletes a texture.
 		void Delete();
+
+	private:
+		static GLuint next_id;
 };
 
 #endif

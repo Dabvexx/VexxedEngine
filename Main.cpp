@@ -188,7 +188,9 @@ int main()
 
 	Camera camera(windowWidth, windowHeight, glm::vec3(0.0f, 0.0f, 10.0f));
 
-	Model model0("Model/plane/scene.gltf");
+	//Model model0("Model/plane/scene.gltf");
+	Model model0("Model/ABeautifulGame/glTF/ABeautifulGame.gltf");
+	//Model model0("Model/MosquitoInAmber/glTF/MosquitoInAmber.gltf");
 
 	//Model[60] models;
 
